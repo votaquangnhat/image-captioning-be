@@ -1,11 +1,16 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import torch
+import torchvision
 from PIL import Image
 from inference import infer
 
 app = Flask(__name__)
 CORS(app)
+
+@app.route('/')
+def home():
+    return "Hello, World!"
 
 @app.route("/caption", methods=["POST"])
 def generate_caption():
@@ -20,7 +25,11 @@ def generate_caption():
         image = Image.open(file.stream).convert("RGB")
         
         with torch.no_grad():
-            caption = infer(image)
+            try:
+                caption = infer(image)
+            except:
+                caption = 'Cannot use torchvision now'
+            print(f'Caption: {caption}')
 
         return jsonify({"caption": caption}), 200
 

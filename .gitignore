@@ -1,0 +1,5 @@
+__pycache__/
+.dockerignore
+compose.yaml
+README.Docker.md
+test.py
