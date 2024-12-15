@@ -3,3 +3,4 @@ __pycache__/
 compose.yaml
 README.Docker.md
 test.py
+model/

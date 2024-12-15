@@ -3,14 +3,28 @@ from flask_cors import CORS
 import torch
 import torchvision
 from PIL import Image
-from inference import infer
+from inference import generateCaption
 
 app = Flask(__name__)
 CORS(app)
 
+model_list = ['dumb', 'trans', 'transpre']
+
 @app.route('/')
 def home():
-    return "Hello, World!"
+    image = Image.open("test1.jpg").convert("RGB")
+    captions = dict.fromkeys(model_list, [])
+    with torch.no_grad():
+        for model in captions.keys():
+            try:
+                captions[model] = generateCaption(image, model)
+            except:
+                captions[model] = 'Error!!!'
+
+    return jsonify({"message": "system is working", 
+                    "dumbModelCaption": captions['dumb'],
+                    "transModelCaption": captions['trans'],
+                    "transpreModelCaption": captions['transpre']}), 200
 
 @app.route("/caption", methods=["POST"])
 def generate_caption():
@@ -21,17 +35,19 @@ def generate_caption():
         file = request.files['image']
         if file.filename == '':
             return jsonify({"error": "Empty filename"}), 400
+        
+        model = request.form['model']
 
         image = Image.open(file.stream).convert("RGB")
         
         with torch.no_grad():
             try:
-                caption = infer(image)
+                caption = generateCaption(image, model)
             except:
                 caption = 'Cannot use torchvision now'
             print(f'Caption: {caption}')
 
-        return jsonify({"caption": caption}), 200
+        return jsonify({'model': model, "caption": caption}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
