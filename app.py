@@ -8,7 +8,7 @@ from inference import generateCaption
 app = Flask(__name__)
 CORS(app)
 
-model_list = ['dumb', 'trans', 'transpre']
+model_list = ['dumb', 'trans', 'transpre', 'cnnlstm']
 
 @app.route('/')
 def home():
@@ -24,7 +24,8 @@ def home():
     return jsonify({"message": "system is working", 
                     "dumbModelCaption": captions['dumb'],
                     "transModelCaption": captions['trans'],
-                    "transpreModelCaption": captions['transpre']}), 200
+                    "transpreModelCaption": captions['transpre'],
+                    "cnnlstmModelCaption": captions['cnnlstm']}), 200
 
 @app.route("/caption", methods=["POST"])
 def generate_caption():

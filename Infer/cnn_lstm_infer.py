@@ -6,6 +6,7 @@ import json
 from tqdm.notebook import tqdm
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+from PIL import Image
 
 from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
@@ -14,9 +15,7 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.utils import to_categorical, plot_model
 
-cur_dir = os.getcwd()
-
-with open(os.path.join(os.path.abspath(os.path.join(cur_dir, os.pardir)), "Data_set/CoCo_transform_train2017.json"), 'r') as file:
+with open(os.path.join(r"model/CoCo_transform_train2017.json"), 'r') as file:
     mapping_train_origin = json.load(file)
 mapping_train = dict()
 
@@ -48,13 +47,16 @@ for key in mapping_train:
 
 
 class Image_to_Text():
-    def __init__(self, image_path, model_path, all_train_captions):
-        image_name_file = image_path.split('/')[-1]
-        image_id = image_name_file.split('.')[0]
+    def __init__(self, image: Image, image_path = None, model_path = r"model/VGG&LSTM_CoCo_model.keras", all_train_captions = all_train_captions):
+        image_id = None
+        if not image_path and isinstance(image_path, str):    
+            image_name_file = image_path.split('/')[-1]
+            image_id = image_name_file.split('.')[0]
         self.image_id = image_id
         self.image_path = image_path
         self.model_path = model_path
         self.all_train_captions = all_train_captions
+        self.image = image
     
     def extract_features(self):
         # Load model VGG16 to extract features from image
@@ -66,8 +68,11 @@ class Image_to_Text():
         # extract feature from image
         features = {}
 
-        img_path = self.image_path
-        image = load_img(img_path, target_size=(224, 224))
+        image = None
+        if not self.image_path and isinstance(self.image_path, str):
+            image = load_img(self.image_path, target_size=(224, 224))
+        else:
+            image = self.image.resize((224,224))
         # conver image pixel to np array
         image = img_to_array(image)
         # reshape data for model 
@@ -156,13 +161,14 @@ class Image_to_Text():
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="Generate captions for an image using a pre-trained VGG & LSTM model.")
-    parser.add_argument("image_path", type=str, help="Path to the input image")
+    # parser = argparse.ArgumentParser(description="Generate captions for an image using a pre-trained VGG & LSTM model.")
+    # parser.add_argument("image_path", type=str, help="Path to the input image")
 
-    args = parser.parse_args()
+    # args = parser.parse_args()
 
-    image_path = rf"{args.image_path}"
-    model_path = os.path.join(cur_dir,os.pardir, "working/Model/VGG&LSTM_CoCo_model.keras")
+    # image_path = rf"{args.image_path}"
+    image_path = r"test1.jpg"
+    model_path = r"model/VGG&LSTM_CoCo_model.keras"
 
-    text_generator = Image_to_Text(image_path, model_path, all_train_captions)
-    text_generator.visualize_the_result()
+    text_generator = Image_to_Text(Image.open(image_path).convert('RGB'))
+    print(text_generator.to_text())
